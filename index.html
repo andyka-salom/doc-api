@@ -1,0 +1,2003 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ERP Heaven Scent — API Documentation</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161921;
+    --surface2: #1e222d;
+    --border: #2a2f3d;
+    --accent: #6c8fff;
+    --accent2: #a78bfa;
+    --green: #34d399;
+    --yellow: #fbbf24;
+    --red: #f87171;
+    --cyan: #22d3ee;
+    --orange: #fb923c;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; line-height: 1.6; display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  #sidebar {
+    width: 260px; min-height: 100vh; background: var(--surface);
+    border-right: 1px solid var(--border); position: fixed; top: 0; left: 0;
+    overflow-y: auto; z-index: 100; display: flex; flex-direction: column;
+  }
+  #sidebar-header { padding: 20px 18px 14px; border-bottom: 1px solid var(--border); }
+  #sidebar-header h1 { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: .05em; }
+  #sidebar-header p { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  #sidebar nav { padding: 10px 0; flex: 1; }
+  .nav-group { margin-bottom: 4px; }
+  .nav-group-title {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700;
+    color: var(--muted); letter-spacing: .12em; text-transform: uppercase;
+    padding: 10px 18px 4px;
+  }
+  .nav-link {
+    display: block; padding: 5px 18px; color: #94a3b8; font-size: 12.5px;
+    text-decoration: none; border-left: 2px solid transparent;
+    transition: all .15s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .nav-link:hover { color: var(--text); background: var(--surface2); border-left-color: var(--border); }
+  .nav-link.active { color: var(--accent); border-left-color: var(--accent); background: rgba(108,143,255,.08); }
+
+  /* MAIN */
+  #main { margin-left: 260px; flex: 1; padding: 40px; max-width: 960px; }
+
+  /* SECTIONS */
+  .section { margin-bottom: 56px; scroll-margin-top: 20px; }
+  .section-header {
+    display: flex; align-items: center; gap: 10px;
+    padding-bottom: 14px; border-bottom: 1px solid var(--border); margin-bottom: 24px;
+  }
+  .section-badge {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 4px; letter-spacing: .05em;
+  }
+  .badge-setting { background: rgba(108,143,255,.15); color: var(--accent); }
+  .badge-org { background: rgba(167,139,250,.15); color: var(--accent2); }
+  .badge-master { background: rgba(52,211,153,.15); color: var(--green); }
+  .badge-transaksi { background: rgba(251,191,36,.15); color: var(--yellow); }
+  .badge-opa { background: rgba(251,146,60,.15); color: var(--orange); }
+  .badge-cp { background: rgba(34,211,238,.15); color: var(--cyan); }
+  .badge-rbac { background: rgba(248,113,113,.15); color: var(--red); }
+  .section-title { font-size: 18px; font-weight: 600; color: var(--text); }
+
+  /* ENDPOINT CARD */
+  .endpoint { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
+  .endpoint-header {
+    display: flex; align-items: center; gap: 10px; padding: 12px 16px;
+    cursor: pointer; user-select: none; transition: background .15s;
+  }
+  .endpoint-header:hover { background: var(--surface2); }
+  .method {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+    padding: 2px 8px; border-radius: 4px; min-width: 52px; text-align: center; letter-spacing: .03em;
+  }
+  .GET    { background: rgba(52,211,153,.15);  color: var(--green);  border: 1px solid rgba(52,211,153,.3); }
+  .POST   { background: rgba(108,143,255,.15); color: var(--accent); border: 1px solid rgba(108,143,255,.3); }
+  .PUT    { background: rgba(251,191,36,.15);  color: var(--yellow); border: 1px solid rgba(251,191,36,.3); }
+  .PATCH  { background: rgba(251,146,60,.15);  color: var(--orange); border: 1px solid rgba(251,146,60,.3); }
+  .DELETE { background: rgba(248,113,113,.15); color: var(--red);    border: 1px solid rgba(248,113,113,.3); }
+  .endpoint-path { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text); flex: 1; }
+  .endpoint-desc { font-size: 12px; color: var(--muted); margin-left: auto; }
+  .chevron { color: var(--muted); font-size: 12px; transition: transform .2s; }
+  .endpoint-header.open .chevron { transform: rotate(180deg); }
+
+  .endpoint-body { display: none; border-top: 1px solid var(--border); padding: 16px; }
+  .endpoint-body.open { display: block; }
+
+  /* PARAMS / PAYLOAD */
+  .sub-title { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 8px; margin-top: 14px; }
+  .sub-title:first-child { margin-top: 0; }
+
+  .param-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .param-table th { text-align: left; padding: 6px 10px; color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid var(--border); }
+  .param-table td { padding: 6px 10px; border-bottom: 1px solid rgba(42,47,61,.6); vertical-align: top; }
+  .param-table tr:last-child td { border-bottom: none; }
+  .param-name { font-family: 'JetBrains Mono', monospace; color: var(--cyan); font-size: 12px; }
+  .param-type { font-family: 'JetBrains Mono', monospace; color: var(--accent2); font-size: 11px; }
+  .param-req  { color: var(--red); font-size: 11px; font-weight: 600; }
+  .param-opt  { color: var(--muted); font-size: 11px; }
+  .param-desc { color: #94a3b8; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 14px; overflow-x: auto; font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; line-height: 1.7; color: #e2e8f0;
+  }
+  .str { color: #a5d6ff; }
+  .num { color: #f69d50; }
+  .bool { color: #ff79c6; }
+  .key { color: #7ee787; }
+  .null-val { color: var(--muted); }
+  .comment { color: var(--muted); font-style: italic; }
+
+  /* HERO */
+  #hero { margin-bottom: 48px; padding: 32px; background: linear-gradient(135deg,rgba(108,143,255,.08),rgba(167,139,250,.06)); border: 1px solid rgba(108,143,255,.2); border-radius: 12px; }
+  #hero h2 { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+  #hero p { color: #94a3b8; font-size: 14px; line-height: 1.7; }
+  .hero-meta { display: flex; gap: 24px; margin-top: 20px; flex-wrap: wrap; }
+  .hero-meta-item { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  .hero-meta-item span { color: var(--muted); }
+  .hero-meta-item strong { color: var(--text); margin-left: 6px; }
+
+  /* AUTH NOTE */
+  .auth-note {
+    background: rgba(251,191,36,.06); border: 1px solid rgba(251,191,36,.2);
+    border-radius: 6px; padding: 10px 14px; font-size: 12.5px; color: #d4a847;
+    margin-bottom: 14px;
+  }
+  .auth-note strong { color: var(--yellow); }
+
+  /* SEARCH BAR */
+  #search-wrap { margin-bottom: 16px; }
+  #search { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 9px 14px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; transition: border-color .2s; }
+  #search:focus { border-color: var(--accent); }
+  #search::placeholder { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div id="sidebar-header">
+    <h1>ERP HEAVEN SCENT</h1>
+    <p>API Documentation v1.0</p>
+  </div>
+  <nav>
+    <div class="nav-group">
+      <div class="nav-group-title">Autentikasi</div>
+      <a class="nav-link" href="#auth">Auth</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">Setting</div>
+      <a class="nav-link" href="#users">Users & Karyawan</a>
+      <a class="nav-link" href="#permissions">Permissions</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">Organisasi</div>
+      <a class="nav-link" href="#chiefs">Chiefs</a>
+      <a class="nav-link" href="#divisions">Divisions</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">Master Data</div>
+      <a class="nav-link" href="#locations">Locations</a>
+      <a class="nav-link" href="#categories">Categories</a>
+      <a class="nav-link" href="#asset-types">Asset Types</a>
+      <a class="nav-link" href="#goods">Goods</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">Transaksi</div>
+      <a class="nav-link" href="#assets">Assets</a>
+      <a class="nav-link" href="#vehicles">Vehicles</a>
+      <a class="nav-link" href="#licenses">Licenses</a>
+      <a class="nav-link" href="#maintenance">Maintenance</a>
+      <a class="nav-link" href="#purchases">Purchases</a>
+      <a class="nav-link" href="#requests">Requests</a>
+      <a class="nav-link" href="#stock">Stock</a>
+      <a class="nav-link" href="#schedules">Schedules</a>
+      <a class="nav-link" href="#reminders">Reminders</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">OPA</div>
+      <a class="nav-link" href="#opa-stores">OPA Stores</a>
+      <a class="nav-link" href="#opa-regulations">Regulations</a>
+      <a class="nav-link" href="#opa-violations">Violations</a>
+      <a class="nav-link" href="#opa-audits">Audits</a>
+      <a class="nav-link" href="#opa-sales">Sales Targets</a>
+      <a class="nav-link" href="#opa-sog">SOG</a>
+      <a class="nav-link" href="#opa-bonus">Bonus</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">Company Profile</div>
+      <a class="nav-link" href="#cp-categories">CP Categories</a>
+      <a class="nav-link" href="#cp-products">CP Products</a>
+      <a class="nav-link" href="#cp-news">CP News</a>
+      <a class="nav-link" href="#cp-careers">CP Careers</a>
+      <a class="nav-link" href="#cp-stores">CP Stores</a>
+    </div>
+  </nav>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <div id="search-wrap">
+    <input id="search" type="text" placeholder="🔍  Cari endpoint...">
+  </div>
+
+  <!-- HERO -->
+  <div id="hero">
+    <h2>ERP Heaven Scent — REST API</h2>
+    <p>Dokumentasi lengkap seluruh endpoint API. Semua endpoint (kecuali auth & Company Profile publik) memerlukan autentikasi via Bearer Token atau Cookie. Gunakan <code style="background:rgba(255,255,255,.08);padding:1px 6px;border-radius:3px;font-family:monospace">?search=</code> untuk pencarian teks di semua endpoint GET list.</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item"><span>Base URL</span><strong>http://localhost:3000/api</strong></div>
+      <div class="hero-meta-item"><span>Auth</span><strong>Bearer Token / Cookie</strong></div>
+      <div class="hero-meta-item"><span>Format</span><strong>JSON</strong></div>
+      <div class="hero-meta-item"><span>Pagination</span><strong>?page=1&limit=20</strong></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ AUTH ═══════════════════════════════════════ -->
+  <div class="section" id="auth">
+    <div class="section-header">
+      <span class="section-badge badge-setting">SETTING</span>
+      <span class="section-title">Autentikasi</span>
+    </div>
+
+    <!-- Login -->
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span>
+        <span class="endpoint-path">/auth/login</span>
+        <span class="endpoint-desc">Login & dapatkan token</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request Body</div>
+        <pre>{
+  <span class="key">"email"</span>: <span class="str">"admin@heavenscent.id"</span>,  <span class="comment">// required</span>
+  <span class="key">"password"</span>: <span class="str">"rahasia123"</span>          <span class="comment">// required, min 6 karakter</span>
+}</pre>
+        <div class="sub-title">Response 200</div>
+        <pre>{
+  <span class="key">"message"</span>: <span class="str">"Login berhasil"</span>,
+  <span class="key">"token"</span>: <span class="str">"eyJhbGciOiJIUzI1..."</span>,
+  <span class="key">"refresh_token"</span>: <span class="str">"eyJhbGciOiJIUzI1..."</span>,
+  <span class="key">"user"</span>: {
+    <span class="key">"id"</span>: <span class="str">"uuid"</span>,
+    <span class="key">"email"</span>: <span class="str">"admin@heavenscent.id"</span>,
+    <span class="key">"full_name"</span>: <span class="str">"Admin Utama"</span>,
+    <span class="key">"is_superadmin"</span>: <span class="bool">true</span>,
+    <span class="key">"permissions"</span>: [<span class="str">"users.read"</span>, <span class="str">"assets.create"</span>]
+  }
+}</pre>
+      </div>
+    </div>
+
+    <!-- Refresh -->
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span>
+        <span class="endpoint-path">/auth/refresh</span>
+        <span class="endpoint-desc">Refresh access token</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="auth-note">Token bisa dikirim via <strong>cookie</strong> atau <strong>request body</strong>.</div>
+        <div class="sub-title">Request Body (opsional jika pakai cookie)</div>
+        <pre>{ <span class="key">"refresh_token"</span>: <span class="str">"eyJhbGci..."</span> }</pre>
+        <div class="sub-title">Response 200</div>
+        <pre>{ <span class="key">"token"</span>: <span class="str">"eyJhbGci..."</span>, <span class="key">"refresh_token"</span>: <span class="str">"eyJhbGci..."</span> }</pre>
+      </div>
+    </div>
+
+    <!-- Logout -->
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span>
+        <span class="endpoint-path">/auth/logout</span>
+        <span class="endpoint-desc">Logout & invalidasi token</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Response 200</div>
+        <pre>{ <span class="key">"message"</span>: <span class="str">"Logout berhasil"</span> }</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ USERS ═══════════════════════════════════════ -->
+  <div class="section" id="users">
+    <div class="section-header">
+      <span class="section-badge badge-setting">SETTING</span>
+      <span class="section-title">Users & Karyawan</span>
+    </div>
+    <div class="auth-note">🔒 Semua endpoint memerlukan <strong>Authorization: Bearer {token}</strong></div>
+
+    <!-- GET /users -->
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span>
+        <span class="endpoint-path">/users</span>
+        <span class="endpoint-desc">List semua user/karyawan</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Query Parameters</div>
+        <table class="param-table">
+          <tr><th>Param</th><th>Tipe</th><th>Wajib</th><th>Deskripsi</th></tr>
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di full_name, email, NIK, position, employee_number</td></tr>
+          <tr><td class="param-name">status</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">active | inactive | resigned | terminated</td></tr>
+          <tr><td class="param-name">division_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td class="param-desc">Filter berdasarkan divisi karyawan</td></tr>
+          <tr><td class="param-name">location_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td class="param-desc">Filter berdasarkan lokasi karyawan</td></tr>
+          <tr><td class="param-name">position</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Filter jabatan (partial match)</td></tr>
+          <tr><td class="param-name">is_superadmin</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td class="param-desc">true | false</td></tr>
+          <tr><td class="param-name">page</td><td class="param-type">number</td><td class="param-opt">opsional</td><td class="param-desc">Default: 1</td></tr>
+          <tr><td class="param-name">limit</td><td class="param-type">number</td><td class="param-opt">opsional</td><td class="param-desc">Default: 20</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- GET /users/:id -->
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span>
+        <span class="endpoint-path">/users/:id</span>
+        <span class="endpoint-desc">Detail user + data karyawan lengkap</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Response 200</div>
+        <pre>{
+  <span class="key">"id"</span>: <span class="str">"uuid"</span>, <span class="key">"email"</span>: <span class="str">"budi@mail.com"</span>,
+  <span class="key">"full_name"</span>: <span class="str">"Budi Santoso"</span>, <span class="key">"is_superadmin"</span>: <span class="bool">false</span>,
+  <span class="key">"employee"</span>: {
+    <span class="key">"id"</span>: <span class="str">"uuid"</span>, <span class="key">"nik"</span>: <span class="str">"12345"</span>,
+    <span class="key">"full_name"</span>: <span class="str">"Budi Santoso"</span>, <span class="key">"position"</span>: <span class="str">"Sales"</span>,
+    <span class="key">"status"</span>: <span class="str">"active"</span>, <span class="key">"location"</span>: {…}, <span class="key">"division"</span>: {…},
+    <span class="key">"histories"</span>: [{ <span class="key">"change_type"</span>: <span class="str">"join"</span>, … }]
+  },
+  <span class="key">"permissions"</span>: [{ <span class="key">"permission"</span>: { <span class="key">"code"</span>: <span class="str">"assets.read"</span> } }]
+}</pre>
+      </div>
+    </div>
+
+    <!-- POST /users -->
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span>
+        <span class="endpoint-path">/users</span>
+        <span class="endpoint-desc">Buat user + karyawan (atomik)</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request Body</div>
+        <pre>{
+  <span class="comment">// === USER ===</span>
+  <span class="key">"email"</span>: <span class="str">"budi@heavenscent.id"</span>,      <span class="comment">// required</span>
+  <span class="key">"password"</span>: <span class="str">"rahasia123"</span>,           <span class="comment">// required, min 6</span>
+  <span class="key">"is_superadmin"</span>: <span class="bool">false</span>,             <span class="comment">// opsional, default false</span>
+  <span class="key">"permission_ids"</span>: [<span class="str">"uuid1"</span>, <span class="str">"uuid2"</span>], <span class="comment">// opsional</span>
+
+  <span class="comment">// === KARYAWAN ===</span>
+  <span class="key">"nik"</span>: <span class="str">"12345"</span>,                      <span class="comment">// required, unik</span>
+  <span class="key">"full_name"</span>: <span class="str">"Budi Santoso"</span>,         <span class="comment">// required</span>
+  <span class="key">"location_id"</span>: <span class="str">"uuid"</span>,               <span class="comment">// required</span>
+  <span class="key">"employee_number"</span>: <span class="str">"EMP-001"</span>,        <span class="comment">// opsional</span>
+  <span class="key">"nickname"</span>: <span class="str">"Budi"</span>,
+  <span class="key">"gender"</span>: <span class="str">"male"</span>,                    <span class="comment">// "male" | "female"</span>
+  <span class="key">"date_of_birth"</span>: <span class="str">"1995-06-15"</span>,
+  <span class="key">"place_of_birth"</span>: <span class="str">"Jakarta"</span>,
+  <span class="key">"national_id"</span>: <span class="str">"3171234567890001"</span>,
+  <span class="key">"phone"</span>: <span class="str">"081234567890"</span>,
+  <span class="key">"employee_email"</span>: <span class="str">"budi@personal.com"</span>,
+  <span class="key">"address"</span>: <span class="str">"Jl. Merdeka No. 1, Jakarta"</span>,
+  <span class="key">"emergency_contact_name"</span>: <span class="str">"Siti"</span>,
+  <span class="key">"emergency_contact_phone"</span>: <span class="str">"08198765432"</span>,
+  <span class="key">"division_id"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"position"</span>: <span class="str">"Sales"</span>,
+  <span class="key">"is_manager"</span>: <span class="bool">false</span>,
+  <span class="key">"is_spv"</span>: <span class="bool">false</span>,
+  <span class="key">"supervisor_id"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"status"</span>: <span class="str">"active"</span>,                 <span class="comment">// "active"|"inactive"|"resigned"|"terminated"</span>
+  <span class="key">"join_date"</span>: <span class="str">"2024-01-15"</span>,
+  <span class="key">"notes"</span>: <span class="str">"Catatan tambahan"</span>
+}</pre>
+      </div>
+    </div>
+
+    <!-- PATCH /users/:id -->
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method PATCH">PATCH</span>
+        <span class="endpoint-path">/users/:id</span>
+        <span class="endpoint-desc">Update data akun user</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request Body</div>
+        <pre>{
+  <span class="key">"full_name"</span>: <span class="str">"Budi Santoso Updated"</span>,
+  <span class="key">"phone"</span>: <span class="str">"081234567891"</span>,
+  <span class="key">"avatar_url"</span>: <span class="str">"/uploads/avatars/foto.jpg"</span>
+}</pre>
+      </div>
+    </div>
+
+    <!-- PATCH /users/:id/employee -->
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method PATCH">PATCH</span>
+        <span class="endpoint-path">/users/:id/employee</span>
+        <span class="endpoint-desc">Update data karyawan (otomatis catat history mutasi)</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request Body</div>
+        <pre>{
+  <span class="comment">// Field profil dasar</span>
+  <span class="key">"full_name"</span>: <span class="str">"Budi Santoso"</span>,
+  <span class="key">"nickname"</span>: <span class="str">"Budi"</span>,
+  <span class="key">"gender"</span>: <span class="str">"male"</span>,
+  <span class="key">"date_of_birth"</span>: <span class="str">"1995-06-15"</span>,
+  <span class="key">"phone"</span>: <span class="str">"081234567890"</span>,
+  <span class="key">"address"</span>: <span class="str">"Jl. Baru No. 5"</span>,
+  <span class="key">"notes"</span>: <span class="str">"..."</span>,
+  <span class="key">"is_manager"</span>: <span class="bool">false</span>,
+  <span class="key">"is_spv"</span>: <span class="bool">true</span>,
+
+  <span class="comment">// Field mutasi (memicu pembuatan history otomatis)</span>
+  <span class="key">"location_id"</span>: <span class="str">"uuid-lokasi-baru"</span>,
+  <span class="key">"division_id"</span>: <span class="str">"uuid-divisi-baru"</span>,
+  <span class="key">"position"</span>: <span class="str">"SPV Sales"</span>,
+  <span class="key">"supervisor_id"</span>: <span class="str">"uuid-spv-baru"</span>,
+  <span class="key">"status"</span>: <span class="str">"active"</span>,
+
+  <span class="comment">// Metadata history (opsional)</span>
+  <span class="key">"change_type"</span>: <span class="str">"mutation"</span>,   <span class="comment">// join|mutation|promotion|demotion|division_change|supervisor_change|status_change|resignation</span>
+  <span class="key">"effective_date"</span>: <span class="str">"2025-01-01"</span>,
+  <span class="key">"reason"</span>: <span class="str">"Rotasi bulanan"</span>
+}</pre>
+      </div>
+    </div>
+
+    <!-- GET /users/:id/employee/histories -->
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span>
+        <span class="endpoint-path">/users/:id/employee/histories</span>
+        <span class="endpoint-desc">Riwayat perubahan karyawan</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Response 200</div>
+        <pre>[{
+  <span class="key">"id"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"change_type"</span>: <span class="str">"mutation"</span>,
+  <span class="key">"from_location"</span>: { <span class="key">"location_name"</span>: <span class="str">"Toko A"</span> },
+  <span class="key">"to_location"</span>: { <span class="key">"location_name"</span>: <span class="str">"Toko B"</span> },
+  <span class="key">"effective_date"</span>: <span class="str">"2025-01-01T00:00:00.000Z"</span>,
+  <span class="key">"reason"</span>: <span class="str">"Rotasi bulanan"</span>
+}]</pre>
+      </div>
+    </div>
+
+    <!-- POST /users/:id/employee/histories -->
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span>
+        <span class="endpoint-path">/users/:id/employee/histories</span>
+        <span class="endpoint-desc">Tambah riwayat manual</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request Body</div>
+        <pre>{
+  <span class="key">"change_type"</span>: <span class="str">"promotion"</span>,  <span class="comment">// required</span>
+  <span class="key">"effective_date"</span>: <span class="str">"2025-02-01"</span>, <span class="comment">// opsional, default now</span>
+  <span class="key">"reason"</span>: <span class="str">"Naik jabatan"</span>,
+  <span class="key">"notes"</span>: <span class="str">"Catatan tambahan"</span>
+}</pre>
+      </div>
+    </div>
+
+    <!-- POST /users/:id/avatar -->
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span>
+        <span class="endpoint-path">/users/:id/avatar</span>
+        <span class="endpoint-desc">Upload foto profil user</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request (multipart/form-data)</div>
+        <table class="param-table">
+          <tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Deskripsi</th></tr>
+          <tr><td class="param-name">avatar</td><td class="param-type">file</td><td class="param-req">required</td><td class="param-desc">File gambar (jpg, png, webp)</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- POST /users/:id/employee/photo -->
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span>
+        <span class="endpoint-path">/users/:id/employee/photo</span>
+        <span class="endpoint-desc">Upload foto karyawan</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request (multipart/form-data)</div>
+        <table class="param-table">
+          <tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Deskripsi</th></tr>
+          <tr><td class="param-name">photo</td><td class="param-type">file</td><td class="param-req">required</td><td class="param-desc">File gambar karyawan</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- PATCH /users/:id/password -->
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method PATCH">PATCH</span>
+        <span class="endpoint-path">/users/:id/password</span>
+        <span class="endpoint-desc">Ubah password</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request Body</div>
+        <pre>{
+  <span class="key">"old_password"</span>: <span class="str">"passwordlama"</span>, <span class="comment">// required (kecuali superadmin reset user lain)</span>
+  <span class="key">"new_password"</span>: <span class="str">"passwordbaru"</span>  <span class="comment">// required, min 6</span>
+}</pre>
+      </div>
+    </div>
+
+    <!-- PUT /users/:id/permissions -->
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method PUT">PUT</span>
+        <span class="endpoint-path">/users/:id/permissions</span>
+        <span class="endpoint-desc">Set permissions user (replace all)</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request Body</div>
+        <pre>{ <span class="key">"permission_ids"</span>: [<span class="str">"uuid1"</span>, <span class="str">"uuid2"</span>, <span class="str">"uuid3"</span>] }</pre>
+      </div>
+    </div>
+
+    <!-- DELETE /users/:id -->
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method DELETE">DELETE</span>
+        <span class="endpoint-path">/users/:id</span>
+        <span class="endpoint-desc">Soft delete user + karyawan</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Response 200</div>
+        <pre>{ <span class="key">"message"</span>: <span class="str">"User berhasil dihapus"</span> }</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ PERMISSIONS ═══════════════════════════════════════ -->
+  <div class="section" id="permissions">
+    <div class="section-header">
+      <span class="section-badge badge-rbac">RBAC</span>
+      <span class="section-title">Permissions</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span>
+        <span class="endpoint-path">/permissions</span>
+        <span class="endpoint-desc">List semua permission (dikelompokkan per modul)</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Query Parameters</div>
+        <table class="param-table">
+          <tr><th>Param</th><th>Tipe</th><th>Wajib</th><th>Deskripsi</th></tr>
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di name, code, description, module</td></tr>
+          <tr><td class="param-name">module</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Filter berdasarkan nama modul</td></tr>
+          <tr><td class="param-name">action</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">read | create | update | delete</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span>
+        <span class="endpoint-path">/permissions</span>
+        <span class="endpoint-desc">Buat permission baru</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request Body</div>
+        <pre>{
+  <span class="key">"code"</span>: <span class="str">"assets.read"</span>,        <span class="comment">// required, unik</span>
+  <span class="key">"name"</span>: <span class="str">"Lihat Aset"</span>,         <span class="comment">// required</span>
+  <span class="key">"description"</span>: <span class="str">"..."</span>,       <span class="comment">// opsional</span>
+  <span class="key">"module"</span>: <span class="str">"assets"</span>,          <span class="comment">// required</span>
+  <span class="key">"action"</span>: <span class="str">"read"</span>             <span class="comment">// required</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ CHIEFS ═══════════════════════════════════════ -->
+  <div class="section" id="chiefs">
+    <div class="section-header">
+      <span class="section-badge badge-org">ORGANISASI</span>
+      <span class="section-title">Chiefs</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span>
+        <span class="endpoint-path">/chiefs</span>
+        <span class="endpoint-desc">List semua chief</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Query Parameters</div>
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di full_name, NIK karyawan</td></tr>
+          <tr><td class="param-name">page / limit</td><td class="param-type">number</td><td class="param-opt">opsional</td><td class="param-desc">Pagination</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span>
+        <span class="endpoint-path">/chiefs</span>
+        <span class="endpoint-desc">Tambah chief baru</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request Body</div>
+        <pre>{
+  <span class="key">"employee_id"</span>: <span class="str">"uuid"</span>,   <span class="comment">// opsional, link ke karyawan</span>
+  <span class="key">"title"</span>: <span class="str">"Chief Marketing Officer"</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ DIVISIONS ═══════════════════════════════════════ -->
+  <div class="section" id="divisions">
+    <div class="section-header">
+      <span class="section-badge badge-org">ORGANISASI</span>
+      <span class="section-title">Divisions</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span>
+        <span class="endpoint-path">/divisions</span>
+        <span class="endpoint-desc">List divisi (default: hanya root)</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Query Parameters</div>
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di name, description</td></tr>
+          <tr><td class="param-name">chief_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td class="param-desc">Filter berdasarkan chief</td></tr>
+          <tr><td class="param-name">flat</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td class="param-desc">flat=true → tampilkan semua divisi tanpa hierarki</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span>
+        <span class="endpoint-path">/divisions</span>
+        <span class="endpoint-desc">Buat divisi baru</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request Body</div>
+        <pre>{
+  <span class="key">"name"</span>: <span class="str">"Marketing"</span>,        <span class="comment">// required</span>
+  <span class="key">"description"</span>: <span class="str">"..."</span>,     <span class="comment">// opsional</span>
+  <span class="key">"chief_id"</span>: <span class="str">"uuid"</span>,       <span class="comment">// opsional</span>
+  <span class="key">"parent_id"</span>: <span class="null-val">null</span>         <span class="comment">// opsional, untuk sub-divisi</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ LOCATIONS ═══════════════════════════════════════ -->
+  <div class="section" id="locations">
+    <div class="section-header">
+      <span class="section-badge badge-master">MASTER</span>
+      <span class="section-title">Locations</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span>
+        <span class="endpoint-path">/locations</span>
+        <span class="endpoint-desc">List lokasi</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Query Parameters</div>
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di location_name, location_district</td></tr>
+          <tr><td class="param-name">type</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">office | gudang | toko</td></tr>
+          <tr><td class="param-name">is_active</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td class="param-desc">Default: true</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span>
+        <span class="endpoint-path">/locations</span>
+        <span class="endpoint-desc">Tambah lokasi</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request Body</div>
+        <pre>{
+  <span class="key">"location_name"</span>: <span class="str">"Toko Sudirman"</span>,   <span class="comment">// required</span>
+  <span class="key">"location_type"</span>: <span class="str">"toko"</span>,             <span class="comment">// required: office | gudang | toko</span>
+  <span class="key">"location_district"</span>: <span class="str">"Jakarta Pusat"</span>,<span class="comment">// opsional</span>
+  <span class="key">"maps_url"</span>: <span class="str">"https://maps.google.com/..."</span>,
+  <span class="key">"is_active"</span>: <span class="bool">true</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ CATEGORIES ═══════════════════════════════════════ -->
+  <div class="section" id="categories">
+    <div class="section-header">
+      <span class="section-badge badge-master">MASTER</span>
+      <span class="section-title">Categories (Barang)</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span>
+        <span class="endpoint-path">/categories</span>
+        <span class="endpoint-desc">List kategori (default: hanya root dengan children)</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Query Parameters</div>
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di name_category, description</td></tr>
+          <tr><td class="param-name">is_active</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td class="param-desc">Default: true</td></tr>
+          <tr><td class="param-name">flat</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td class="param-desc">flat=true → semua kategori tanpa hierarki</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span>
+        <span class="endpoint-path">/categories</span>
+        <span class="endpoint-desc">Buat kategori (bisa sekaligus dengan children)</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request Body</div>
+        <pre>{
+  <span class="key">"name_category"</span>: <span class="str">"Elektronik"</span>,  <span class="comment">// required</span>
+  <span class="key">"description"</span>: <span class="str">"..."</span>,
+  <span class="key">"parent_id"</span>: <span class="null-val">null</span>,
+  <span class="key">"is_active"</span>: <span class="bool">true</span>,
+  <span class="key">"children"</span>: [
+    { <span class="key">"name_category"</span>: <span class="str">"Laptop"</span>, <span class="key">"is_active"</span>: <span class="bool">true</span> }
+  ]
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ ASSET TYPES ═══════════════════════════════════════ -->
+  <div class="section" id="asset-types">
+    <div class="section-header">
+      <span class="section-badge badge-master">MASTER</span>
+      <span class="section-title">Asset Types</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/asset-types</span>
+        <span class="endpoint-desc">List tipe aset</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di name_type, description</td></tr>
+          <tr><td class="param-name">is_active</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/asset-types</span>
+        <span class="endpoint-desc">Buat tipe aset</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{ <span class="key">"name_type"</span>: <span class="str">"Elektronik"</span>, <span class="comment">// required</span>
+  <span class="key">"is_active"</span>: <span class="bool">true</span> }</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ GOODS ═══════════════════════════════════════ -->
+  <div class="section" id="goods">
+    <div class="section-header">
+      <span class="section-badge badge-master">MASTER</span>
+      <span class="section-title">Goods (Barang)</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/goods</span>
+        <span class="endpoint-desc">List barang</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di good_name, good_code</td></tr>
+          <tr><td class="param-name">category_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">asset_type_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">item_type</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">consumable | asset | spare_part</td></tr>
+          <tr><td class="param-name">is_active</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/goods</span>
+        <span class="endpoint-desc">Tambah barang</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"category_id"</span>: <span class="str">"uuid"</span>,           <span class="comment">// required</span>
+  <span class="key">"good_code"</span>: <span class="str">"BRG-001"</span>,           <span class="comment">// required, unik</span>
+  <span class="key">"good_name"</span>: <span class="str">"Tisu Basah"</span>,        <span class="comment">// required</span>
+  <span class="key">"merk"</span>: <span class="str">"Paseo"</span>,
+  <span class="key">"item_type"</span>: <span class="str">"consumable"</span>,       <span class="comment">// consumable | asset | spare_part</span>
+  <span class="key">"asset_type_id"</span>: <span class="null-val">null</span>,
+  <span class="key">"stock_first"</span>: <span class="num">0</span>,
+  <span class="key">"stock_minimum"</span>: <span class="num">5</span>,
+  <span class="key">"is_active"</span>: <span class="bool">true</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ ASSETS ═══════════════════════════════════════ -->
+  <div class="section" id="assets">
+    <div class="section-header">
+      <span class="section-badge badge-transaksi">TRANSAKSI</span>
+      <span class="section-title">Assets</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/assets</span>
+        <span class="endpoint-desc">List aset</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di good_name, good_code, serial_number, kode_asset</td></tr>
+          <tr><td class="param-name">location_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">condition</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">good | service | broken | sold</td></tr>
+          <tr><td class="param-name">good_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">type_asset_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">is_active</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/assets</span>
+        <span class="endpoint-desc">Tambah aset</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"good_id"</span>: <span class="str">"uuid"</span>,               <span class="comment">// required</span>
+  <span class="key">"location_id"</span>: <span class="str">"uuid"</span>,           <span class="comment">// required</span>
+  <span class="key">"type_asset_id"</span>: <span class="str">"uuid"</span>,         <span class="comment">// required</span>
+  <span class="key">"detail_purchase_id"</span>: <span class="null-val">null</span>,
+  <span class="key">"code_asset"</span>: <span class="str">"AST-2024-001"</span>,
+  <span class="key">"date_asset"</span>: <span class="str">"2024-01-15"</span>,
+  <span class="key">"condition"</span>: <span class="str">"good"</span>,             <span class="comment">// good | service | broken | sold</span>
+  <span class="key">"description_asset"</span>: <span class="str">"Laptop Dell"</span>,
+  <span class="key">"is_active"</span>: <span class="bool">true</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ VEHICLES ═══════════════════════════════════════ -->
+  <div class="section" id="vehicles">
+    <div class="section-header">
+      <span class="section-badge badge-transaksi">TRANSAKSI</span>
+      <span class="section-title">Vehicles</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/vehicles</span>
+        <span class="endpoint-desc">List kendaraan</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di plate_number, brand, model, kode_vehicle</td></tr>
+          <tr><td class="param-name">is_active</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/vehicles</span>
+        <span class="endpoint-desc">Tambah kendaraan</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"vehicle_type"</span>: <span class="str">"Mobil"</span>,         <span class="comment">// required</span>
+  <span class="key">"plate_number"</span>: <span class="str">"B 1234 ABC"</span>,   <span class="comment">// required</span>
+  <span class="key">"name_stnk"</span>: <span class="str">"PT Heaven Scent"</span>, <span class="comment">// required</span>
+  <span class="key">"date_stnk"</span>: <span class="str">"2026-12-31"</span>,      <span class="comment">// required</span>
+  <span class="key">"date_change_plate"</span>: <span class="null-val">null</span>,
+  <span class="key">"date_service"</span>: <span class="str">"2025-03-01"</span>,
+  <span class="key">"interval_service"</span>: <span class="num">6</span>,          <span class="comment">// bulan, default 6</span>
+  <span class="key">"is_active"</span>: <span class="bool">true</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ LICENSES ═══════════════════════════════════════ -->
+  <div class="section" id="licenses">
+    <div class="section-header">
+      <span class="section-badge badge-transaksi">TRANSAKSI</span>
+      <span class="section-title">Licenses</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/licenses</span>
+        <span class="endpoint-desc">List lisensi</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di license_name, license_number, vendor</td></tr>
+          <tr><td class="param-name">location_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">status_payment</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">paid | unpaid</td></tr>
+          <tr><td class="param-name">is_active</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">expiring_soon</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td class="param-desc">true → tampilkan yang expire dalam 30 hari</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/licenses</span>
+        <span class="endpoint-desc">Tambah lisensi</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"location_id"</span>: <span class="str">"uuid"</span>,       <span class="comment">// required</span>
+  <span class="key">"app_name"</span>: <span class="str">"Microsoft 365"</span>, <span class="comment">// required</span>
+  <span class="key">"number_license"</span>: <span class="str">"LIC-2024"</span>, <span class="comment">// required</span>
+  <span class="key">"date_active"</span>: <span class="str">"2024-01-01"</span>,
+  <span class="key">"date_expired"</span>: <span class="str">"2025-01-01"</span>, <span class="comment">// required</span>
+  <span class="key">"price_periode"</span>: <span class="num">500000</span>,
+  <span class="key">"status_payment"</span>: <span class="str">"paid"</span>,   <span class="comment">// paid | unpaid</span>
+  <span class="key">"is_active"</span>: <span class="bool">true</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ MAINTENANCE ═══════════════════════════════════════ -->
+  <div class="section" id="maintenance">
+    <div class="section-header">
+      <span class="section-badge badge-transaksi">TRANSAKSI</span>
+      <span class="section-title">Maintenance</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/maintenance</span>
+        <span class="endpoint-desc">List pekerjaan maintenance</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di kode_maintenance, perihal, vendor</td></tr>
+          <tr><td class="param-name">status</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">open | hold | done</td></tr>
+          <tr><td class="param-name">current_stage</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">request | screening | payment | work | done</td></tr>
+          <tr><td class="param-name">location_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">is_hold</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">date_from / date_to</td><td class="param-type">date</td><td class="param-opt">opsional</td><td class="param-desc">Filter rentang tanggal maintenance</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/maintenance</span>
+        <span class="endpoint-desc">Buat pekerjaan maintenance</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"location_id"</span>: <span class="str">"uuid"</span>,               <span class="comment">// required</span>
+  <span class="key">"employee_id"</span>: <span class="str">"uuid"</span>,               <span class="comment">// required (PIC GA)</span>
+  <span class="key">"event_item"</span>: <span class="str">"Perbaikan AC Lantai 2"</span>,<span class="comment">// required</span>
+  <span class="key">"date_maintenance"</span>: <span class="str">"2025-06-01"</span>,    <span class="comment">// required</span>
+  <span class="key">"description_maintenance"</span>: <span class="str">"..."</span>,
+  <span class="key">"payment_info"</span>: <span class="num">1500000</span>
+}</pre>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/maintenance/:id/progress</span>
+        <span class="endpoint-desc">Tambah progress maintenance</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request (multipart/form-data)</div>
+        <pre>{
+  <span class="key">"stage"</span>: <span class="str">"screening"</span>,         <span class="comment">// required: request|screening|payment|work|done</span>
+  <span class="key">"is_done"</span>: <span class="bool">false</span>,
+  <span class="key">"date_stage"</span>: <span class="str">"2025-06-02"</span>,  <span class="comment">// required</span>
+  <span class="key">"notes"</span>: <span class="str">"Dicek besok"</span>,
+  <span class="key">"vendor_name"</span>: <span class="str">"CV Sejahtera"</span>,
+  <span class="key">"down_payment"</span>: <span class="num">500000</span>,
+  <span class="key">"total_payment"</span>: <span class="num">1500000</span>
+}
+<span class="comment">// + field: evidence_photo (file)</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ PURCHASES ═══════════════════════════════════════ -->
+  <div class="section" id="purchases">
+    <div class="section-header">
+      <span class="section-badge badge-transaksi">TRANSAKSI</span>
+      <span class="section-title">Purchases</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/purchases</span>
+        <span class="endpoint-desc">List pembelian</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di kode_purchase, vendor, notes</td></tr>
+          <tr><td class="param-name">status</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">draft | done | refund</td></tr>
+          <tr><td class="param-name">location_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">date_from / date_to</td><td class="param-type">date</td><td class="param-opt">opsional</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/purchases</span>
+        <span class="endpoint-desc">Buat purchase order</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request (multipart/form-data)</div>
+        <pre>{
+  <span class="key">"location_id"</span>: <span class="str">"uuid"</span>,               <span class="comment">// required</span>
+  <span class="key">"date_submission"</span>: <span class="str">"2025-06-01"</span>,     <span class="comment">// required</span>
+  <span class="key">"request_id"</span>: <span class="null-val">null</span>,
+  <span class="key">"pic_hrga"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"pic_ga"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"date_purchase"</span>: <span class="str">"2025-06-03"</span>,
+  <span class="key">"payment"</span>: <span class="str">"kas_ga"</span>,              <span class="comment">// kas_ga | finance</span>
+  <span class="key">"description_purchase"</span>: <span class="str">"..."</span>,
+  <span class="key">"items"</span>: [
+    {
+      <span class="key">"good_id"</span>: <span class="str">"uuid"</span>,
+      <span class="key">"qty_purchase"</span>: <span class="num">5</span>,
+      <span class="key">"unit_price"</span>: <span class="num">50000</span>,
+      <span class="key">"description_item_purchase"</span>: <span class="str">"..."</span>
+    }
+  ]
+}
+<span class="comment">// + fields: evidence_purchase, evidence_done (file)</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ REQUESTS ═══════════════════════════════════════ -->
+  <div class="section" id="requests">
+    <div class="section-header">
+      <span class="section-badge badge-transaksi">TRANSAKSI</span>
+      <span class="section-title">Requests (Permintaan Barang)</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/requests</span>
+        <span class="endpoint-desc">List permintaan barang</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di kode_request, notes, nama karyawan</td></tr>
+          <tr><td class="param-name">status</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">pending | approved | rejected | purchased</td></tr>
+          <tr><td class="param-name">location_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">employee_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">date_from / date_to</td><td class="param-type">date</td><td class="param-opt">opsional</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/requests</span>
+        <span class="endpoint-desc">Buat permintaan barang</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"location_id"</span>: <span class="str">"uuid"</span>,          <span class="comment">// required</span>
+  <span class="key">"date_request"</span>: <span class="str">"2025-06-01"</span>, <span class="comment">// required</span>
+  <span class="key">"description_request"</span>: <span class="str">"..."</span>,
+  <span class="key">"items"</span>: [
+    {
+      <span class="key">"good_id"</span>: <span class="str">"uuid"</span>,
+      <span class="key">"category_id"</span>: <span class="str">"uuid"</span>,
+      <span class="key">"qty_request"</span>: <span class="num">10</span>,
+      <span class="key">"description_detail_request"</span>: <span class="str">"..."</span>,
+      <span class="key">"link_reference"</span>: <span class="str">"https://tokopedia.com/..."</span>
+    }
+  ]
+}</pre>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method PATCH">PATCH</span><span class="endpoint-path">/requests/:id/status</span>
+        <span class="endpoint-desc">Update status permintaan</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"status"</span>: <span class="str">"approved"</span>,   <span class="comment">// required</span>
+  <span class="key">"notes"</span>: <span class="str">"Disetujui"</span>    <span class="comment">// opsional</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ STOCK ═══════════════════════════════════════ -->
+  <div class="section" id="stock">
+    <div class="section-header">
+      <span class="section-badge badge-transaksi">TRANSAKSI</span>
+      <span class="section-title">Stock</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/stock</span>
+        <span class="endpoint-desc">List stok</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di good_name, good_code</td></tr>
+          <tr><td class="param-name">good_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">location_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">period_from / period_to</td><td class="param-type">date</td><td class="param-opt">opsional</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/stock</span>
+        <span class="endpoint-desc">Buat record stok</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"good_id"</span>: <span class="str">"uuid"</span>,     <span class="comment">// required</span>
+  <span class="key">"location_id"</span>: <span class="str">"uuid"</span>,<span class="comment">// required</span>
+  <span class="key">"qty_first"</span>: <span class="num">0</span>,
+  <span class="key">"qty_in"</span>: <span class="num">100</span>,
+  <span class="key">"qty_out"</span>: <span class="num">10</span>,
+  <span class="key">"nominal_unit"</span>: <span class="num">5000</span>,
+  <span class="key">"period"</span>: <span class="str">"2025-06-01"</span>  <span class="comment">// required</span>
+}</pre>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/stock/:id/movements</span>
+        <span class="endpoint-desc">Tambah mutasi stok</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"location_id"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"movement_type"</span>: <span class="str">"in"</span>,     <span class="comment">// initial | in | out | adjustment</span>
+  <span class="key">"qty"</span>: <span class="num">50</span>,
+  <span class="key">"date_movement"</span>: <span class="str">"2025-06-10"</span>,
+  <span class="key">"description_movement"</span>: <span class="str">"Penerimaan dari pusat"</span>,
+  <span class="key">"table_reference"</span>: <span class="str">"t_Purchase"</span>,
+  <span class="key">"reference_id"</span>: <span class="str">"uuid"</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ SCHEDULES ═══════════════════════════════════════ -->
+  <div class="section" id="schedules">
+    <div class="section-header">
+      <span class="section-badge badge-transaksi">TRANSAKSI</span>
+      <span class="section-title">Schedules</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/schedules</span>
+        <span class="endpoint-desc">List jadwal</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di perihal, notes, kode_schedule</td></tr>
+          <tr><td class="param-name">status</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">need_reminder | done</td></tr>
+          <tr><td class="param-name">location_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">perihal</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">driver | cctv_installation | cleaning | other</td></tr>
+          <tr><td class="param-name">date_from / date_to</td><td class="param-type">date</td><td class="param-opt">opsional</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/schedules</span>
+        <span class="endpoint-desc">Buat jadwal</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"maintenance_id"</span>: <span class="null-val">null</span>,
+  <span class="key">"location_id"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"date_schedule"</span>: <span class="str">"2025-07-01"</span>,   <span class="comment">// required</span>
+  <span class="key">"perihal"</span>: <span class="str">"cleaning"</span>,             <span class="comment">// required: driver|cctv_installation|cleaning|other</span>
+  <span class="key">"description_schedule"</span>: <span class="str">"General cleaning lantai 1"</span>, <span class="comment">// required</span>
+  <span class="key">"pic_external"</span>: <span class="str">"Pak Rudi"</span>,
+  <span class="key">"no_hp_pic"</span>: <span class="str">"0812345678"</span>,
+  <span class="key">"status"</span>: <span class="str">"need_reminder"</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ REMINDERS ═══════════════════════════════════════ -->
+  <div class="section" id="reminders">
+    <div class="section-header">
+      <span class="section-badge badge-transaksi">TRANSAKSI</span>
+      <span class="section-title">Reminders</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/reminders</span>
+        <span class="endpoint-desc">List reminder</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di title, description</td></tr>
+          <tr><td class="param-name">status</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">active | done | ignored</td></tr>
+          <tr><td class="param-name">reminder_type</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">stnk | service_vehicle | license_expired | schedule | dll</td></tr>
+          <tr><td class="param-name">due_before / due_after</td><td class="param-type">date</td><td class="param-opt">opsional</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/reminders</span>
+        <span class="endpoint-desc">Buat reminder</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"reference_id"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"reminder_type"</span>: <span class="str">"stnk"</span>, <span class="comment">// stnk|service_vehicle|quota|work_schedule|driver|cctv|cleaning|schedule|license_expired</span>
+  <span class="key">"table_reference"</span>: <span class="str">"t_Vehicle"</span>,
+  <span class="key">"due_date"</span>: <span class="str">"2026-12-31"</span>,  <span class="comment">// required</span>
+  <span class="key">"alert_date_before"</span>: <span class="num">7</span>,     <span class="comment">// hari sebelum due_date, default 7</span>
+  <span class="key">"description"</span>: <span class="str">"STNK B 1234 ABC"</span>,
+  <span class="key">"status"</span>: <span class="str">"active"</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ OPA STORES ═══════════════════════════════════════ -->
+  <div class="section" id="opa-stores">
+    <div class="section-header">
+      <span class="section-badge badge-opa">OPA</span>
+      <span class="section-title">OPA — Stores</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/opa/stores</span>
+        <span class="endpoint-desc">List toko OPA</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di store_code, store_name, location</td></tr>
+          <tr><td class="param-name">is_new_store</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/opa/stores</span>
+        <span class="endpoint-desc">Tambah toko OPA</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"location_id"</span>: <span class="str">"uuid"</span>,       <span class="comment">// required</span>
+  <span class="key">"store_code"</span>: <span class="str">"TK-001"</span>,      <span class="comment">// required</span>
+  <span class="key">"spv_id"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"keptok_id"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"is_new_store"</span>: <span class="bool">false</span>,
+  <span class="key">"opened_at"</span>: <span class="str">"2022-01-01"</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ OPA REGULATIONS ═══════════════════════════════════════ -->
+  <div class="section" id="opa-regulations">
+    <div class="section-header">
+      <span class="section-badge badge-opa">OPA</span>
+      <span class="section-title">OPA — Regulations</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/opa/regulations</span>
+        <span class="endpoint-desc">List peraturan</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di pasal, description, action_taken</td></tr>
+          <tr><td class="param-name">color</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">putih | hijau | kuning | orange | merah</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/opa/regulations</span>
+        <span class="endpoint-desc">Tambah peraturan</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"pasal"</span>: <span class="num">1</span>,
+  <span class="key">"ayat"</span>: <span class="num">2</span>,
+  <span class="key">"description"</span>: <span class="str">"Dilarang merokok di area toko"</span>,
+  <span class="key">"poin"</span>: <span class="num">50</span>,
+  <span class="key">"color"</span>: <span class="str">"kuning"</span>   <span class="comment">// putih|hijau|kuning|orange|merah</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ OPA VIOLATIONS ═══════════════════════════════════════ -->
+  <div class="section" id="opa-violations">
+    <div class="section-header">
+      <span class="section-badge badge-opa">OPA</span>
+      <span class="section-title">OPA — Violations</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/opa/violations</span>
+        <span class="endpoint-desc">List pelanggaran</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di nama karyawan, store_code, notes</td></tr>
+          <tr><td class="param-name">employee_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">store_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">color_manual</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">putih | hijau | kuning | orange | merah</td></tr>
+          <tr><td class="param-name">date_from / date_to</td><td class="param-type">date</td><td class="param-opt">opsional</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/opa/violations</span>
+        <span class="endpoint-desc">Catat pelanggaran</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request (multipart/form-data)</div>
+        <pre>{
+  <span class="key">"employee_id"</span>: <span class="str">"uuid"</span>,    <span class="comment">// required</span>
+  <span class="key">"store_id"</span>: <span class="str">"uuid"</span>,       <span class="comment">// required</span>
+  <span class="key">"recorded_by"</span>: <span class="str">"uuid"</span>,   <span class="comment">// required (employee yang mencatat)</span>
+  <span class="key">"regulation_id"</span>: <span class="str">"uuid"</span>, <span class="comment">// opsional</span>
+  <span class="key">"poin_manual"</span>: <span class="num">50</span>,
+  <span class="key">"color_manual"</span>: <span class="str">"kuning"</span>,
+  <span class="key">"penemuan"</span>: <span class="str">"Ditemukan merokok"</span>,
+  <span class="key">"violation_date"</span>: <span class="str">"2025-06-01"</span>,  <span class="comment">// required</span>
+  <span class="key">"notes"</span>: <span class="str">"..."</span>
+}
+<span class="comment">// + field: evidence_url (file foto)</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ OPA AUDITS ═══════════════════════════════════════ -->
+  <div class="section" id="opa-audits">
+    <div class="section-header">
+      <span class="section-badge badge-opa">OPA</span>
+      <span class="section-title">OPA — Audits</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/opa/audits</span>
+        <span class="endpoint-desc">List audit</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di nama karyawan, store_code, position_at_audit</td></tr>
+          <tr><td class="param-name">store_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">spv_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">employee_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">status</td><td class="param-type">string</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">date_from / date_to</td><td class="param-type">date</td><td class="param-opt">opsional</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/opa/audits</span>
+        <span class="endpoint-desc">Buat audit</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"spv_id"</span>: <span class="str">"uuid"</span>,              <span class="comment">// required</span>
+  <span class="key">"employee_id"</span>: <span class="str">"uuid"</span>,         <span class="comment">// required (yang diaudit)</span>
+  <span class="key">"store_id"</span>: <span class="str">"uuid"</span>,           <span class="comment">// required</span>
+  <span class="key">"position_at_audit"</span>: <span class="str">"Sales"</span>, <span class="comment">// required</span>
+  <span class="key">"visit_number"</span>: <span class="str">"1"</span>,           <span class="comment">// required: "1" | "2"</span>
+  <span class="key">"visit_date"</span>: <span class="str">"2025-06-10"</span>,   <span class="comment">// required</span>
+  <span class="key">"spv_notes_discovery"</span>: <span class="str">"..."</span>,
+  <span class="key">"items"</span>: [
+    { <span class="key">"template_id"</span>: <span class="str">"uuid"</span>, <span class="key">"score"</span>: <span class="num">80</span> }
+  ]
+}</pre>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/opa/audits/templates</span>
+        <span class="endpoint-desc">List template audit</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di category_audit</td></tr>
+          <tr><td class="param-name">category_audit</td><td class="param-type">string</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">is_active</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/opa/audits/templates</span>
+        <span class="endpoint-desc">Buat template audit</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"category_audit"</span>: <span class="str">"Grooming"</span>,
+  <span class="key">"indicator"</span>: <span class="str">"Seragam bersih dan rapi"</span>,
+  <span class="key">"max_score"</span>: <span class="num">100</span>,
+  <span class="key">"applicable_positions"</span>: <span class="str">"all"</span>,
+  <span class="key">"is_active"</span>: <span class="bool">true</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ OPA SALES TARGETS ═══════════════════════════════════════ -->
+  <div class="section" id="opa-sales">
+    <div class="section-header">
+      <span class="section-badge badge-opa">OPA</span>
+      <span class="section-title">OPA — Sales Targets</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/opa/sales-targets</span>
+        <span class="endpoint-desc">List target penjualan</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di store_code, store_name</td></tr>
+          <tr><td class="param-name">store_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">day_of_week</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">senin|selasa|rabu|kamis|jumat|sabtu|minggu</td></tr>
+          <tr><td class="param-name">date_from / date_to</td><td class="param-type">date</td><td class="param-opt">opsional</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/opa/sales-targets</span>
+        <span class="endpoint-desc">Set target penjualan</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"store_id"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"date"</span>: <span class="str">"2025-06-01"</span>,
+  <span class="key">"day_of_week"</span>: <span class="str">"minggu"</span>,
+  <span class="key">"revenue"</span>: <span class="num">5000000</span>,
+  <span class="key">"target_1"</span>: <span class="num">6000000</span>,
+  <span class="key">"target_2"</span>: <span class="num">7000000</span>,
+  <span class="key">"target_3"</span>: <span class="num">8000000</span>,
+  <span class="key">"target_1_nego"</span>: <span class="num">5500000</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ OPA SOG ═══════════════════════════════════════ -->
+  <div class="section" id="opa-sog">
+    <div class="section-header">
+      <span class="section-badge badge-opa">OPA</span>
+      <span class="section-title">OPA — SOG (Stock Opname Gudang)</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/opa/sog</span>
+        <span class="endpoint-desc">List SOG</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di store_code, notes</td></tr>
+          <tr><td class="param-name">store_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">date_from / date_to</td><td class="param-type">date</td><td class="param-opt">opsional</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/opa/sog</span>
+        <span class="endpoint-desc">Input SOG</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"store_id"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"so_date"</span>: <span class="str">"2025-06-30"</span>,
+  <span class="key">"one_pct_in_stock"</span>: <span class="num">125000</span>,
+  <span class="key">"selisih_rp"</span>: <span class="num">-5000</span>,
+  <span class="key">"staff_count"</span>: <span class="num">3</span>,
+  <span class="key">"staff_ids"</span>: [<span class="str">"uuid1"</span>, <span class="str">"uuid2"</span>]
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ OPA BONUS ═══════════════════════════════════════ -->
+  <div class="section" id="opa-bonus">
+    <div class="section-header">
+      <span class="section-badge badge-opa">OPA</span>
+      <span class="section-title">OPA — Bonus</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/opa/bonus/configs</span>
+        <span class="endpoint-desc">List konfigurasi bonus</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di component, position_type</td></tr>
+          <tr><td class="param-name">position_type</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">keptok | produksi | sales | kasir</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/opa/bonus/configs</span>
+        <span class="endpoint-desc">Buat konfigurasi bonus</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"position_type"</span>: <span class="str">"sales"</span>,
+  <span class="key">"component"</span>: <span class="str">"Bonus Produktivitas"</span>,
+  <span class="key">"pct_from_basic"</span>: <span class="num">10</span>,
+  <span class="key">"effective_from"</span>: <span class="str">"2025-01-01"</span>
+}</pre>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/opa/bonus/employee</span>
+        <span class="endpoint-desc">List bonus karyawan</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di nama karyawan, store_code</td></tr>
+          <tr><td class="param-name">store_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">employee_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">period_month</td><td class="param-type">date</td><td class="param-opt">opsional</td><td class="param-desc">Contoh: 2025-06-01</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/opa/bonus/employee</span>
+        <span class="endpoint-desc">Input / update bonus karyawan</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"employee_id"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"store_id"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"period_month"</span>: <span class="str">"2025-06-01"</span>,
+  <span class="key">"basic_bonus"</span>: <span class="num">2000000</span>,
+  <span class="key">"rank_produktivitas"</span>: <span class="num">1</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ CP CATEGORIES ═══════════════════════════════════════ -->
+  <div class="section" id="cp-categories">
+    <div class="section-header">
+      <span class="section-badge badge-cp">COMPANY PROFILE</span>
+      <span class="section-title">CP — Categories</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/cp/categories</span>
+        <span class="endpoint-desc">List kategori CP (publik)</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di name</td></tr>
+          <tr><td class="param-name">type</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">product | news | career | membership</td></tr>
+          <tr><td class="param-name">is_active</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td class="param-desc">Default: true</td></tr>
+          <tr><td class="param-name">parent_id</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">uuid atau "null" untuk top-level saja</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/cp/categories</span>
+        <span class="endpoint-desc">Buat kategori CP</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"type"</span>: <span class="str">"product"</span>,    <span class="comment">// required: product|news|career|membership</span>
+  <span class="key">"name"</span>: <span class="str">"Parfum"</span>,
+  <span class="key">"slug"</span>: <span class="str">"parfum"</span>,    <span class="comment">// auto-generate jika kosong</span>
+  <span class="key">"parent_id"</span>: <span class="null-val">null</span>,
+  <span class="key">"sort_order"</span>: <span class="num">1</span>,
+  <span class="key">"is_active"</span>: <span class="bool">true</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ CP PRODUCTS ═══════════════════════════════════════ -->
+  <div class="section" id="cp-products">
+    <div class="section-header">
+      <span class="section-badge badge-cp">COMPANY PROFILE</span>
+      <span class="section-title">CP — Products</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/cp/products</span>
+        <span class="endpoint-desc">List produk (publik)</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di name</td></tr>
+          <tr><td class="param-name">category_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">is_active</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">is_available_online</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/cp/products</span>
+        <span class="endpoint-desc">Tambah produk</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request (multipart/form-data)</div>
+        <pre>{
+  <span class="key">"category_id"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"name"</span>: <span class="str">"Heaven Parfum Rose"</span>,
+  <span class="key">"slug"</span>: <span class="str">"heaven-parfum-rose"</span>,
+  <span class="key">"description"</span>: <span class="str">"Aroma bunga mawar..."</span>,
+  <span class="key">"top_notes"</span>: <span class="str">"Bergamot, Lemon"</span>,
+  <span class="key">"heart_notes"</span>: <span class="str">"Rose, Jasmine"</span>,
+  <span class="key">"base_notes"</span>: <span class="str">"Musk, Sandalwood"</span>,
+  <span class="key">"is_available_online"</span>: <span class="bool">true</span>,
+  <span class="key">"is_active"</span>: <span class="bool">true</span>
+}
+<span class="comment">// + field: image (file)</span></pre>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/cp/products/:id/variants</span>
+        <span class="endpoint-desc">Tambah varian produk</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"volume_ml"</span>: <span class="num">100</span>,
+  <span class="key">"price"</span>: <span class="num">250000</span>,
+  <span class="key">"is_active"</span>: <span class="bool">true</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ CP NEWS ═══════════════════════════════════════ -->
+  <div class="section" id="cp-news">
+    <div class="section-header">
+      <span class="section-badge badge-cp">COMPANY PROFILE</span>
+      <span class="section-title">CP — News</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/cp/news</span>
+        <span class="endpoint-desc">List berita (publik)</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di title</td></tr>
+          <tr><td class="param-name">category_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">is_active</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/cp/news</span>
+        <span class="endpoint-desc">Tambah berita</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <div class="sub-title">Request (multipart/form-data)</div>
+        <pre>{
+  <span class="key">"category_id"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"title"</span>: <span class="str">"Pembukaan Toko Baru"</span>,
+  <span class="key">"slug"</span>: <span class="str">"pembukaan-toko-baru"</span>,
+  <span class="key">"description"</span>: <span class="str">"Ringkasan..."</span>,
+  <span class="key">"content"</span>: <span class="str">"Konten lengkap HTML..."</span>,
+  <span class="key">"published_at"</span>: <span class="str">"2025-06-01"</span>,
+  <span class="key">"is_active"</span>: <span class="bool">true</span>
+}
+<span class="comment">// + field: image (file)</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ CP CAREERS ═══════════════════════════════════════ -->
+  <div class="section" id="cp-careers">
+    <div class="section-header">
+      <span class="section-badge badge-cp">COMPANY PROFILE</span>
+      <span class="section-title">CP — Careers</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/cp/careers</span>
+        <span class="endpoint-desc">List lowongan (publik)</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di title</td></tr>
+          <tr><td class="param-name">category_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">location_id</td><td class="param-type">uuid</td><td class="param-opt">opsional</td><td></td></tr>
+          <tr><td class="param-name">is_active</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/cp/careers</span>
+        <span class="endpoint-desc">Buat lowongan kerja</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"category_id"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"location_id"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"title"</span>: <span class="str">"Sales Associate"</span>,
+  <span class="key">"description"</span>: <span class="str">"..."</span>,
+  <span class="key">"qualification"</span>: <span class="str">"Min D3, pengalaman 1 tahun"</span>,
+  <span class="key">"salary_min"</span>: <span class="num">3000000</span>,
+  <span class="key">"salary_max"</span>: <span class="num">5000000</span>,
+  <span class="key">"expired_at"</span>: <span class="str">"2025-12-31"</span>,
+  <span class="key">"is_active"</span>: <span class="bool">true</span>
+}</pre>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/cp/careers/:id/apply</span>
+        <span class="endpoint-desc">Lamar lowongan (publik, multipart/form-data)</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"full_name"</span>: <span class="str">"Andi Wijaya"</span>,
+  <span class="key">"email"</span>: <span class="str">"andi@email.com"</span>,
+  <span class="key">"phone"</span>: <span class="str">"08123456789"</span>,
+  <span class="key">"cover_letter"</span>: <span class="str">"Saya tertarik..."</span>
+}
+<span class="comment">// + field: cv (file PDF)</span></pre>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method PATCH">PATCH</span><span class="endpoint-path">/cp/careers/:id/applications/:appId/status</span>
+        <span class="endpoint-desc">Update status pelamar</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{ <span class="key">"status"</span>: <span class="str">"shortlisted"</span> } <span class="comment">// submitted | reviewed | shortlisted</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ CP STORES ═══════════════════════════════════════ -->
+  <div class="section" id="cp-stores">
+    <div class="section-header">
+      <span class="section-badge badge-cp">COMPANY PROFILE</span>
+      <span class="section-title">CP — Stores</span>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method GET">GET</span><span class="endpoint-path">/cp/stores</span>
+        <span class="endpoint-desc">List toko publik</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <table class="param-table">
+          <tr><td class="param-name">search</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">Cari di name, address, city, phone</td></tr>
+          <tr><td class="param-name">store_type</td><td class="param-type">string</td><td class="param-opt">opsional</td><td class="param-desc">offline | online</td></tr>
+          <tr><td class="param-name">is_active</td><td class="param-type">boolean</td><td class="param-opt">opsional</td><td class="param-desc">Default: true</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/cp/stores</span>
+        <span class="endpoint-desc">Tambah toko (multipart/form-data)</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"store_type"</span>: <span class="str">"offline"</span>,   <span class="comment">// required: offline | online</span>
+  <span class="key">"name"</span>: <span class="str">"Heaven Scent Sudirman"</span>,
+  <span class="key">"is_active"</span>: <span class="bool">true</span>,
+  <span class="key">"sort_order"</span>: <span class="num">1</span>
+}
+<span class="comment">// + field: logo (file)</span></pre>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method PUT">PUT</span><span class="endpoint-path">/cp/stores/:id/offline-detail</span>
+        <span class="endpoint-desc">Upsert detail toko offline</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"city"</span>: <span class="str">"Jakarta"</span>,
+  <span class="key">"address"</span>: <span class="str">"Jl. Sudirman No. 1"</span>,
+  <span class="key">"operational_hours"</span>: <span class="bool">true</span>,
+  <span class="key">"latitude"</span>: <span class="num">-6.2088</span>,
+  <span class="key">"longitude"</span>: <span class="num">106.8456</span>,
+  <span class="key">"maps_url"</span>: <span class="str">"https://goo.gl/maps/..."</span>
+}</pre>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method PUT">PUT</span><span class="endpoint-path">/cp/stores/:id/online-detail</span>
+        <span class="endpoint-desc">Upsert detail toko online</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"store_url"</span>: <span class="str">"https://shopee.co.id/heavenscent"</span>,
+  <span class="key">"platform"</span>: <span class="str">"Shopee"</span>
+}</pre>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/cp/stores/banners</span>
+        <span class="endpoint-desc">Upload banner (multipart/form-data)</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"title"</span>: <span class="str">"Promo Ramadan"</span>,
+  <span class="key">"description"</span>: <span class="str">"Diskon 50%"</span>,
+  <span class="key">"sort_order"</span>: <span class="num">1</span>,
+  <span class="key">"is_active"</span>: <span class="bool">true</span>
+}
+<span class="comment">// + field: image (file)</span></pre>
+      </div>
+    </div>
+
+    <div class="endpoint">
+      <div class="endpoint-header" onclick="toggle(this)">
+        <span class="method POST">POST</span><span class="endpoint-path">/cp/stores/memberships</span>
+        <span class="endpoint-desc">Tambah tier membership</span><span class="chevron">▼</span>
+      </div>
+      <div class="endpoint-body">
+        <pre>{
+  <span class="key">"category_id"</span>: <span class="str">"uuid"</span>,
+  <span class="key">"description"</span>: <span class="str">"Nikmati keuntungan member Gold..."</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function toggle(header) {
+    const body = header.nextElementSibling;
+    const isOpen = body.classList.toggle('open');
+    header.classList.toggle('open', isOpen);
+  }
+
+  // Active nav link on scroll
+  const sections = document.querySelectorAll('.section');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const link = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+
+  // Search
+  const search = document.getElementById('search');
+  search.addEventListener('input', () => {
+    const q = search.value.toLowerCase();
+    document.querySelectorAll('.endpoint').forEach(ep => {
+      const text = ep.textContent.toLowerCase();
+      ep.style.display = text.includes(q) ? '' : 'none';
+    });
+    document.querySelectorAll('.section').forEach(sec => {
+      const visible = [...sec.querySelectorAll('.endpoint')].some(e => e.style.display !== 'none');
+      sec.style.display = visible ? '' : 'none';
+    });
+  });
+</script>
+</body>
+</html>
